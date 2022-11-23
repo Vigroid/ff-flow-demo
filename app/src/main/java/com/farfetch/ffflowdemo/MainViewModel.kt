@@ -1,6 +1,7 @@
 package com.farfetch.ffflowdemo
 
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.farfetch.ffflowdemo.demo.ui.MainUiState
@@ -36,5 +37,20 @@ class MainViewModel(
         } else {
             productRepo.removeFromLikeProducts(productId = productId)
         }
+    }
+
+    fun clearLikedProducts() = productRepo.clearAllLiked()
+
+    fun likeAllProducts() {
+        val allProductIds = productRepo.productList.map { it.productId }
+        productRepo.addToLikedProducts(allProductIds)
+    }
+
+    fun likeRedProductsOnly() {
+        val redProductIds = productRepo.productList
+            .filter { it.iconColor == Color.Red }
+            .map { it.productId }
+        productRepo.clearAllLiked()
+        productRepo.addToLikedProducts(redProductIds)
     }
 }

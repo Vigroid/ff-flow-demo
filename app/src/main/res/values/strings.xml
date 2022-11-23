@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">FarfetchFlowDemo</string>
+    <string name="liked_items_empty">No liked items.</string>
+    <string name="liked_items_text">%d item(s) liked.</string>
+    <string name="clear_all_liked_items">Clear</string>
+    <string name="add_all_liked_items">Like all</string>
+    <string name="like_red_items">Like red</string>
 </resources>

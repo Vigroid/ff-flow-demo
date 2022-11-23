@@ -44,4 +44,12 @@ class ProductRepository {
     fun removeFromLikeProducts(productId: String) {
         _likedProducts.remove(productId)
     }
+
+    fun clearAllLiked() {
+        _likedProducts.clear()
+    }
+
+    fun addToLikedProducts(productIds: List<String>) {
+        _likedProducts.addAll(productIds)
+    }
 }

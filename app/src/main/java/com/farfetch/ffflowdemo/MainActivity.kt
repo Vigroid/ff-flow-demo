@@ -1,9 +1,9 @@
 package com.farfetch.ffflowdemo
 
 import android.os.Bundle
-import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
@@ -23,7 +23,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
+        setContentView(R.layout.activity_main)
+        val mainContent = findViewById<ComposeView>(R.id.compose_view)
+        mainContent.setContent {
             FarfetchFlowDemoTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -33,22 +35,44 @@ class MainActivity : ComponentActivity() {
                     MainScreen(viewModel = vm) { isAdd, id ->
                         vm.modifyLikeProducts(isAdd, id)
                         // Need to recompose the UI manually.
-                        existingComposeView?.disposeComposition()
+                        updateViews(mainContent = mainContent)
                     }
                 }
             }
         }
+        // Clear all products to liked list
+        findViewById<Button>(R.id.btn_clear_all).setOnClickListener {
+            vm.clearLikedProducts()
+            updateViews(mainContent = mainContent)
+        }
+        // Add all products to liked list
+        findViewById<Button>(R.id.btn_add_all).setOnClickListener {
+            vm.likeAllProducts()
+            updateViews(mainContent = mainContent)
+        }
+        // Add all red products to liked list
+        findViewById<Button>(R.id.btn_add_red).setOnClickListener {
+            vm.likeRedProductsOnly()
+            updateViews(mainContent = mainContent)
+        }
     }
 
-    // Helper function to get activity root compose view
-    private val existingComposeView
-        get() = window.decorView
-            .findViewById<ViewGroup>(android.R.id.content)
-            .getChildAt(0) as? ComposeView
+    // This function is called multiple times
+    // and the complexity of it will be increased if new features are added.
+    private fun updateViews(mainContent: ComposeView) {
+        mainContent.disposeComposition()
+        val tvCount = findViewById<TextView>(R.id.tv_count)
+        val count = vm.likedProducts.size
+        tvCount.text = if (count == 0) {
+            getString(R.string.liked_items_empty)
+        } else {
+            getString(R.string.liked_items_text, count)
+        }
+    }
 }
 
 @Composable
-private fun MainScreen(viewModel: MainViewModel, onModifyLikeProducts: (Boolean, String) -> Unit) {
+private fun MainScreen(viewModel: MainViewModel, onModifyLiked: (Boolean, String) -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     val likedList = viewModel.likedProducts
     when {
@@ -69,7 +93,7 @@ private fun MainScreen(viewModel: MainViewModel, onModifyLikeProducts: (Boolean,
             modifier = Modifier.fillMaxSize(),
             products = uiState.productList,
             likedList = likedList,
-            onModifyLiked = onModifyLikeProducts
+            onModifyLiked = onModifyLiked
         )
     }
 }
