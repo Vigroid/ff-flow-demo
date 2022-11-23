@@ -1,4 +1,4 @@
-package com.farfetch.ffflowdemo.demo.data
+package com.farfetch.ffflowdemo.demo.ui
 
 data class MainUiState(
     val isLoading: Boolean = false,

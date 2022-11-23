@@ -1,6 +1,7 @@
 package com.farfetch.ffflowdemo.demo.data
 
 import androidx.compose.ui.graphics.Color
+import com.farfetch.ffflowdemo.demo.ui.ProductUiState
 
 private val demoColorList = listOf(
     Color.Black,
@@ -33,4 +34,14 @@ fun mockProducts(count: Int) = List(count) {
 
 class ProductRepository {
     val productList = mockProducts(500)
+    private val _likedProducts = mutableListOf<String>()
+    val likedProducts = _likedProducts
+
+    fun addToLikedProducts(productId: String) {
+        _likedProducts.add(productId)
+    }
+
+    fun removeFromLikeProducts(productId: String) {
+        _likedProducts.remove(productId)
+    }
 }
