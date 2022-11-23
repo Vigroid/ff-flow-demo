@@ -15,8 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.farfetch.ffflowdemo.demo.ui.ProductList
 import com.farfetch.ffflowdemo.ui.theme.FarfetchFlowDemoTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val vm by lazy { MainViewModel() }
@@ -33,36 +37,36 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     MainScreen(viewModel = vm) { isAdd, id ->
-                        vm.modifyLikeProducts(isAdd, id)
-                        // Need to recompose the UI manually.
-                        updateViews(mainContent = mainContent)
+                        vm.modifyLikeProducts(isAdd = isAdd, productId = id)
                     }
+                }
+            }
+        }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.likedTotalCount.collect { size ->
+                    updateViews(size)
                 }
             }
         }
         // Clear all products to liked list
         findViewById<Button>(R.id.btn_clear_all).setOnClickListener {
             vm.clearLikedProducts()
-            updateViews(mainContent = mainContent)
         }
         // Add all products to liked list
         findViewById<Button>(R.id.btn_add_all).setOnClickListener {
             vm.likeAllProducts()
-            updateViews(mainContent = mainContent)
         }
         // Add all red products to liked list
         findViewById<Button>(R.id.btn_add_red).setOnClickListener {
             vm.likeRedProductsOnly()
-            updateViews(mainContent = mainContent)
         }
     }
 
     // This function is called multiple times
     // and the complexity of it will be increased if new features are added.
-    private fun updateViews(mainContent: ComposeView) {
-        mainContent.disposeComposition()
+    private fun updateViews(count: Int) {
         val tvCount = findViewById<TextView>(R.id.tv_count)
-        val count = vm.likedProducts.size
         tvCount.text = if (count == 0) {
             getString(R.string.liked_items_empty)
         } else {
@@ -74,7 +78,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainScreen(viewModel: MainViewModel, onModifyLiked: (Boolean, String) -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
-    val likedList = viewModel.likedProducts
     when {
         uiState.isLoading -> Box(
             modifier = Modifier.fillMaxSize(),
@@ -89,10 +92,9 @@ private fun MainScreen(viewModel: MainViewModel, onModifyLiked: (Boolean, String
             Text(text = "Something went wrong")
         }
         else -> ProductList(
-            listState = viewModel.lazyState,
             modifier = Modifier.fillMaxSize(),
             products = uiState.productList,
-            likedList = likedList,
+            likedList = viewModel.likedProducts,
             onModifyLiked = onModifyLiked
         )
     }

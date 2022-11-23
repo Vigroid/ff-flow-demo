@@ -2,6 +2,7 @@ package com.farfetch.ffflowdemo.demo.data
 
 import androidx.compose.ui.graphics.Color
 import com.farfetch.ffflowdemo.demo.ui.ProductUiState
+import kotlinx.coroutines.flow.MutableStateFlow
 
 private val demoColorList = listOf(
     Color.Black,
@@ -34,22 +35,23 @@ fun mockProducts(count: Int) = List(count) {
 
 class ProductRepository {
     val productList = mockProducts(500)
-    private val _likedProducts = mutableListOf<String>()
-    val likedProducts = _likedProducts
+
+    private val _likedProductsFlow = MutableStateFlow(listOf<String>())
+    val likedProductsFlow = _likedProductsFlow
 
     fun addToLikedProducts(productId: String) {
-        _likedProducts.add(productId)
+        _likedProductsFlow.value = _likedProductsFlow.value + productId
     }
 
     fun removeFromLikeProducts(productId: String) {
-        _likedProducts.remove(productId)
+        _likedProductsFlow.value = _likedProductsFlow.value - productId
     }
 
     fun clearAllLiked() {
-        _likedProducts.clear()
+        _likedProductsFlow.value = emptyList()
     }
 
     fun addToLikedProducts(productIds: List<String>) {
-        _likedProducts.addAll(productIds)
+        _likedProductsFlow.value = productIds
     }
 }

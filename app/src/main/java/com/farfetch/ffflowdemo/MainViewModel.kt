@@ -1,6 +1,5 @@
 package com.farfetch.ffflowdemo
 
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class MainViewModel(
@@ -27,9 +27,20 @@ class MainViewModel(
         initialValue = MainUiState(isLoading = true)
     )
 
-    val likedProducts = productRepo.likedProducts
+    val likedProducts = productRepo.likedProductsFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = listOf()
+    )
 
-    val lazyState = LazyListState()
+    // Use flow operator
+    val likedTotalCount = productRepo.likedProductsFlow.map {
+        it.size
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 0
+    )
 
     fun modifyLikeProducts(isAdd: Boolean, productId: String) {
         if (isAdd) {

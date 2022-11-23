@@ -13,11 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,17 +28,18 @@ import androidx.compose.ui.unit.dp
 import com.farfetch.ffflowdemo.R
 import com.farfetch.ffflowdemo.demo.data.mockProducts
 import com.farfetch.ffflowdemo.ui.theme.Shapes
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 @Composable
 fun ProductList(
-    listState: LazyListState = rememberLazyListState(),
     modifier: Modifier,
     products: List<ProductUiState>,
-    likedList: List<String>,
+    likedList: Flow<List<String>>,
     onModifyLiked: (Boolean, String) -> Unit,
 ) {
     LazyColumn(
-        state = listState,
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(vertical = 24.dp)
@@ -51,10 +53,14 @@ fun ProductList(
 @Composable
 fun ProductCell(
     product: ProductUiState,
-    likedList: List<String>,
+    likedList: Flow<List<String>>,
     onModifyLiked: (Boolean, String) -> Unit
 ) {
-    val isLiked = product.productId in likedList
+    val isLiked by remember {
+        likedList.map { list ->
+            product.productId in list
+        }
+    }.collectAsState(initial = false)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,7 +99,7 @@ private fun ProductListingPreview() {
     ProductList(
         modifier = Modifier.fillMaxWidth(),
         products = mockProducts(100),
-        likedList = listOf(),
+        likedList = flow {  },
         onModifyLiked = { _, _ -> },
     )
 }
