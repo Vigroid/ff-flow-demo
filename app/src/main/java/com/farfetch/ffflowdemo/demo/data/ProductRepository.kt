@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.farfetch.ffflowdemo.demo.ui.ProductUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 
-private val demoColorList = listOf(
+val demoColorList = listOf(
     Color.Black,
     Color.Gray,
     Color.White,

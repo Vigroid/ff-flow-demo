@@ -1,19 +1,29 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.farfetch.ffflowdemo
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
+import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -22,10 +32,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.farfetch.ffflowdemo.demo.ui.AdvertisementUIState
 import com.farfetch.ffflowdemo.demo.ui.ProductList
 import com.farfetch.ffflowdemo.ui.theme.FarfetchFlowDemoTheme
 
@@ -74,8 +86,10 @@ private fun MainScreen(viewModel: MainViewModel) {
                 onModifyLiked = viewModel::modifyLikeProducts
             )
             val count by viewModel.likedTotalCount.collectAsState()
+            val adInfo by viewModel.advertisementUiState.collectAsState()
             BottomBar(
                 totalCount = count,
+                advertisementUIState = adInfo,
                 onClickClear = viewModel::clearLikedProducts,
                 onClickLikeAll = viewModel::likeAllProducts,
                 onClickLikeRedOnly = viewModel::likeRedProductsOnly,
@@ -87,6 +101,7 @@ private fun MainScreen(viewModel: MainViewModel) {
 @Composable
 private fun BottomBar(
     totalCount: Int,
+    advertisementUIState: AdvertisementUIState?,
     onClickClear: () -> Unit,
     onClickLikeAll: () -> Unit,
     onClickLikeRedOnly: () -> Unit,
@@ -97,6 +112,34 @@ private fun BottomBar(
         stringResource(R.string.liked_items_text, totalCount)
     }
     Column(modifier = Modifier.fillMaxWidth()) {
+        Divider(thickness = 3.dp, color = Color.Black)
+        AnimatedContent(
+            targetState = advertisementUIState,
+            transitionSpec = {
+                slideInVertically(tween(500)) { height -> height } with
+                        slideOutVertically(tween(500)) { height -> -height }
+            }) {
+            it?.let { info ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = info.title, modifier = Modifier
+                            .weight(2f)
+                            .padding(horizontal = 12.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(info.icon)
+                    )
+                }
+            }
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()

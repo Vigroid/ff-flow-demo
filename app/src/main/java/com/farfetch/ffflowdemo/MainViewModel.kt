@@ -1,15 +1,20 @@
 package com.farfetch.ffflowdemo
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.farfetch.ffflowdemo.demo.ui.AdvertisementUIState
 import com.farfetch.ffflowdemo.demo.ui.MainUiState
 import com.farfetch.ffflowdemo.demo.data.ProductRepository
+import com.farfetch.ffflowdemo.demo.data.demoColorList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 
 class MainViewModel(
@@ -25,6 +30,33 @@ class MainViewModel(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = MainUiState(isLoading = true)
+    )
+
+    private val titleAdFLow = flow {
+        repeat(10) {
+            delay(2000)
+            emit("Advertisement Title $it")
+        }
+    }
+
+    private val colorAdFlow = flow {
+        for (color in demoColorList.filterNot { it == Color.White }.shuffled().take(5)) {
+            delay(5000)
+            emit(color)
+        }
+    }
+
+    val advertisementUiState = titleAdFLow.combine(colorAdFlow) { title, color ->
+        AdvertisementUIState(
+            title = title,
+            icon = color,
+        )
+    }.onEach {
+        Log.i("FlowDemo ad", "Info is $it")
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
     )
 
     val likedProducts = productRepo.likedProductsFlow.stateIn(
