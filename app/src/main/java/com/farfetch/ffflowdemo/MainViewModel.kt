@@ -8,6 +8,7 @@ import com.farfetch.ffflowdemo.demo.ui.AdvertisementUIState
 import com.farfetch.ffflowdemo.demo.ui.MainUiState
 import com.farfetch.ffflowdemo.demo.data.ProductRepository
 import com.farfetch.ffflowdemo.demo.data.demoColorList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
@@ -16,9 +17,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val productRepo: ProductRepository = ProductRepository()
+    private val productRepo: ProductRepository
 ) : ViewModel() {
     val uiState = flow {
         emit(MainUiState(isLoading = true))
@@ -75,25 +77,35 @@ class MainViewModel(
     )
 
     fun modifyLikeProducts(isAdd: Boolean, productId: String) {
-        if (isAdd) {
-            productRepo.addToLikedProducts(productId = productId)
-        } else {
-            productRepo.removeFromLikeProducts(productId = productId)
+        viewModelScope.launch(Dispatchers.IO) {
+            if (isAdd) {
+                productRepo.addToLikedProducts(productId = productId)
+            } else {
+                productRepo.removeFromLikeProducts(productId = productId)
+            }
         }
     }
 
-    fun clearLikedProducts() = productRepo.clearAllLiked()
+    fun clearLikedProducts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            productRepo.clearAllLiked()
+        }
+    }
 
     fun likeAllProducts() {
-        val allProductIds = productRepo.productList.map { it.productId }
-        productRepo.addToLikedProducts(allProductIds)
+        viewModelScope.launch(Dispatchers.IO) {
+            val allProductIds = productRepo.productList.map { it.productId }
+            productRepo.addToLikedProducts(allProductIds)
+        }
     }
 
     fun likeRedProductsOnly() {
-        val redProductIds = productRepo.productList
-            .filter { it.iconColor == Color.Red }
-            .map { it.productId }
-        productRepo.clearAllLiked()
-        productRepo.addToLikedProducts(redProductIds)
+        viewModelScope.launch(Dispatchers.IO) {
+            val redProductIds = productRepo.productList
+                .filter { it.iconColor == Color.Red }
+                .map { it.productId }
+            productRepo.clearAllLiked()
+            productRepo.addToLikedProducts(redProductIds)
+        }
     }
 }

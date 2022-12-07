@@ -37,12 +37,23 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Room
+import com.farfetch.ffflowdemo.demo.data.AppDatabase
+import com.farfetch.ffflowdemo.demo.data.ProductRepository
 import com.farfetch.ffflowdemo.demo.ui.AdvertisementUIState
 import com.farfetch.ffflowdemo.demo.ui.ProductList
 import com.farfetch.ffflowdemo.ui.theme.FarfetchFlowDemoTheme
 
 class MainActivity : ComponentActivity() {
-    private val vm by lazy { MainViewModel() }
+    // Just for demo. We should initialize db in Application
+    private val db by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "database-name"
+        ).build()
+    }
+
+    private val vm by lazy { MainViewModel(productRepo = ProductRepository(db.likedDao())) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

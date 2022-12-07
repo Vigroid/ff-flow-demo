@@ -1,8 +1,9 @@
 package com.farfetch.ffflowdemo.demo.data
 
 import androidx.compose.ui.graphics.Color
+import com.farfetch.ffflowdemo.demo.ui.LikedProduct
 import com.farfetch.ffflowdemo.demo.ui.ProductUiState
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 
 val demoColorList = listOf(
     Color.Black,
@@ -33,25 +34,26 @@ fun mockProducts(count: Int) = List(count) {
     )
 }
 
-class ProductRepository {
+class ProductRepository(
+    private val likedDao: LikedProductDao
+) {
     val productList = mockProducts(500)
 
-    private val _likedProductsFlow = MutableStateFlow(listOf<String>())
-    val likedProductsFlow = _likedProductsFlow
+    val likedProductsFlow = likedDao.getAll().map { list -> list.map { it.productId } }
 
-    fun addToLikedProducts(productId: String) {
-        _likedProductsFlow.value = _likedProductsFlow.value + productId
+    suspend fun addToLikedProducts(productId: String) {
+        likedDao.insertProduct(id = LikedProduct(productId))
     }
 
-    fun removeFromLikeProducts(productId: String) {
-        _likedProductsFlow.value = _likedProductsFlow.value - productId
+    suspend fun removeFromLikeProducts(productId: String) {
+        likedDao.deleteProduct(id = LikedProduct(productId))
     }
 
-    fun clearAllLiked() {
-        _likedProductsFlow.value = emptyList()
+    suspend fun clearAllLiked() {
+        likedDao.deleteAllProducts()
     }
 
-    fun addToLikedProducts(productIds: List<String>) {
-        _likedProductsFlow.value = productIds
+    suspend fun addToLikedProducts(productIds: List<String>) {
+        likedDao.insertProducts(ids = productIds.map { LikedProduct(it) })
     }
 }
